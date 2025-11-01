@@ -1,4 +1,5 @@
 import 'package:finacial_manager/src/core/localization/Translation.dart';
+import 'package:finacial_manager/src/features/feature_home/domain/entities/money.dart';
 import 'package:finacial_manager/src/features/feature_home/domain/entities/user.dart';
 import 'package:finacial_manager/src/features/feature_home/view/nave_screen.dart';
 import 'package:flutter/material.dart';
@@ -8,14 +9,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   await Hive.initFlutter();
-  Hive.registerAdapter(UserAdapter());
-  await Hive.openBox('userBox');
+  Hive.registerAdapter(MoneyAdapter());
+  await Hive.openBox('moneyBox');
   runApp( MyApp());
 }
 
 class MyApp extends StatelessWidget {
    MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
