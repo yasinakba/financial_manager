@@ -3,6 +3,7 @@ import 'package:finacial_manager/src/features/feature_home/domain/entities/money
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:searchbar_animation/searchbar_animation.dart';
 
@@ -26,32 +27,49 @@ class HeaderWidget extends StatelessWidget {
                   isOriginalAnimation: true,
                   trailingWidget: Icon(IconsaxPlusBold.search_normal),
                   secondaryButtonWidget: Icon(IconsaxPlusBold.close_square),
+                  onCollapseComplete: () {
+                    controller.searchController.clear();
+                    controller.isSearch = false;
+                    controller.money.clear();
+                    controller.update();
+                  },
                   onChanged: (String text) {
                     if (text.isEmpty) {
-                      controller.money
-                        ..clear()
-                        ..addAll(controller.hiveBox!.values);
                       controller.isSearch = false;
+                      controller.money.clear();
                     } else {
-                      final result = controller.hiveBox!.values.where((value) {
-                        return value.title?.toLowerCase().contains(text.toLowerCase()) ?? false ||
-                            value.date!.toLowerCase().contains(text.toLowerCase()) ;
+                      controller.isSearch = true;
+                      controller.money.clear();
+                      
+                      // Safely access the box
+                      var values = controller.hiveBox?.values ?? Hive.box<Money>('moneyBox').values;
+
+                      final result = values.where((value) {
+                        return (value.title?.toLowerCase().contains(text.toLowerCase()) ?? false) ||
+                               (value.date?.toLowerCase().contains(text.toLowerCase()) ?? false);
                       }).toList();
 
-                      controller.money
-                        ..clear()
-                        ..addAll(result);
-                      controller.isSearch = true;
+                      controller.money.addAll(result);
                     }
                     controller.update();
                   },
                   onFieldSubmitted: (String text) {
-                    final result = controller.hiveBox!.values.where((value) {
-                      return value.title?.contains(text.toLowerCase()) ?? false || value.date!.toLowerCase().contains(text.toLowerCase());}).toList();
-                    controller.money
-                      ..clear()
-                      ..addAll(result);
-                    controller.isSearch = true;
+                    if (text.isEmpty) {
+                       controller.isSearch = false;
+                       controller.money.clear();
+                    } else {
+                       controller.isSearch = true;
+                       controller.money.clear();
+                       
+                       var values = controller.hiveBox?.values ?? Hive.box<Money>('moneyBox').values;
+                       
+                       final result = values.where((value) {
+                        return (value.title?.toLowerCase().contains(text.toLowerCase()) ?? false) ||
+                               (value.date?.toLowerCase().contains(text.toLowerCase()) ?? false);
+                       }).toList();
+                       
+                       controller.money.addAll(result);
+                    }
                     controller.update();
                   },
                   buttonWidget: Icon(

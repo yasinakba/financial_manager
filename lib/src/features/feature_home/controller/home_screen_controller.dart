@@ -21,17 +21,42 @@ class HomeController extends GetxController {
   }
 
   Widget showData() {
-    Box hiveBox = Hive.box<Money>('moneyBox');
-   return ValueListenableBuilder(
-      valueListenable: hiveBox.listenable(),
+    // Ensure hiveBox is available for filtered searches
+    if (hiveBox == null && Hive.isBoxOpen('moneyBox')) {
+      hiveBox = Hive.box<Money>('moneyBox');
+    }
+
+    if (isSearch) {
+        if (money.isEmpty) {
+          return EmptyWidget(); 
+        }
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: money.length,
+          itemBuilder: (context, index) {
+             final Money item = money[index];
+             return TransactionItemWidget(money: item, id: item.key.toString());
+          },
+        );
+    }
+
+    Box box = Hive.box<Money>('moneyBox');
+    return ValueListenableBuilder(
+      valueListenable: box.listenable(),
       builder: (BuildContext context,Box box, Widget? child) {
         if(box.values.isEmpty){
           return EmptyWidget();
         }
-        return ListView.builder(itemCount: hiveBox.length,itemBuilder: (context, index) {
-          final Money money = box.getAt(index);
-          return TransactionItemWidget(money: money, id: index.toString(),);
-        },);
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: box.length,
+          itemBuilder: (context, index) {
+            final Money money = box.getAt(index);
+            return TransactionItemWidget(money: money, id: index.toString(),);
+          },
+        );
       },
     );
   }
@@ -58,34 +83,62 @@ class HomeController extends GetxController {
   String date = 'Date';
 
   void addTransaction() async {
-    if (isEditing) {
-      // Get the existing money object passed via arguments
-      Money money = Get.arguments as Money;
-
-      // Update its fields
-      money.title = titleController.text;
-      money.price = priceController.text;
-      money.date = date;
-      money.isReceived = selectedValue == 1;
-
-      // Save the changes (HiveObject method)
-      money.save();
+    try {
+      // Clean price string (remove commas)
+      String cleanPrice = priceController.text.replaceAll(',', '');
       
-      isEditing = false;
-    } else {
-      if (titleController.text.isNotEmpty || priceController.text.isNotEmpty) {
-        Money newMoney = Money(titleController.text,priceController.text,date,selectedValue == 1?true:false,);
-        var box = await Hive.openBox<Money>('moneyBox');
-        int r = await box.add(newMoney);
-        print(r);
+      if (isEditing) {
+        // --- EDIT MODE ---
+        // Get the existing money object passed via arguments
+        if (Get.arguments is Money) {
+          Money money = Get.arguments as Money;
+
+          // Update its fields
+          money.title = titleController.text;
+          money.price = cleanPrice; // Save without commas
+          money.date = date;
+          money.isReceived = selectedValue == 1;
+
+          // Save the changes (HiveObject method)
+          await money.save();
+          isEditing = false;
+        }
+      } else {
+        // --- ADD MODE ---
+        if (titleController.text.isNotEmpty || priceController.text.isNotEmpty) {
+          Money newMoney = Money(
+            titleController.text,
+            cleanPrice, // Save without commas
+            date,
+            selectedValue == 1 ? true : false,
+          );
+
+          // Ensure box is open before adding
+          var box = await Hive.openBox<Money>('moneyBox');
+          this.hiveBox = box; // update reference
+
+          int r = await box.add(newMoney);
+          print("Transaction added with key: $r");
+        }
       }
+
+      // Clear inputs only on success
+      titleController.clear();
+      priceController.clear();
+      selectedValue = -1;
+      date = 'Date';
+      Get.back(); // Close the screen/dialog
+
+    } catch (e) {
+      // Handle any errors (e.g., Show a snackbar)
+      print("Error adding/editing transaction: $e");
+      Get.snackbar(
+        "Error",
+        "Something went wrong while saving the transaction.",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     }
-    // Clear inputs
-    titleController.clear();
-    priceController.clear();
-    selectedValue = -1;
-    date = 'Date';
-    Get.back();
   }
 
 
@@ -95,6 +148,14 @@ class HomeController extends GetxController {
       initialDate: DateTime.now(),
       firstDate: DateTime(1990),
       lastDate: DateTime(2099),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            textTheme: ThemeData.light().textTheme,
+          ),
+          child: child!,
+        );
+      },
     );
     if (pickedDate != null) {
       String month = pickedDate.month.toString().padLeft(2, '0');

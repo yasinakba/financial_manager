@@ -14,8 +14,8 @@ class InfoWidgetEN extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle labelStyle = const TextStyle(fontSize: 16, fontWeight: FontWeight.w500);
-    TextStyle valueStyle = const TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+    TextStyle labelStyle = const TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
+    TextStyle valueStyle = const TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
 
     Widget buildWrap(String label1, String value1, String label2, String value2) {
       return Padding(
@@ -55,7 +55,7 @@ class InfoWidgetEN extends StatelessWidget {
         children: [
           Text(
             'Transaction Management (\$)'.tr,
-            style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
           buildWrap('Received today:'.tr, receivedDay, 'Paid today:'.tr, paidDay),

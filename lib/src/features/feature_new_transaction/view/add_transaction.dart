@@ -4,12 +4,13 @@ import 'package:finacial_manager/src/features/feature_home/controller/home_scree
 import 'package:finacial_manager/src/features/feature_home/data/constant.dart';
 import 'package:finacial_manager/src/features/feature_home/domain/entities/money.dart';
 import 'package:finacial_manager/src/features/feature_new_transaction/widget/my_button.dart';
-import 'package:finacial_manager/src/features/feature_new_transaction/widget/text_filed_widget.dart';
+import 'package:finacial_manager/src/features/feature_new_transaction/widget/text_filed_widget_price.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
+import '../utils/thousands_formatter.dart';
 import '../widget/radio_button_widget.dart';
 
 class AddTransaction extends StatelessWidget {
@@ -34,6 +35,9 @@ class AddTransaction extends StatelessWidget {
                   hint: 'price',
                   type: TextInputType.number,
                   icon: IconsaxPlusBold.moneys,
+                  inputFormatters: [
+                    ThousandsFormatter(),
+                  ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -84,4 +88,3 @@ class AddTransaction extends StatelessWidget {
     );
   }
 }
-

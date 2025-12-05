@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -8,7 +9,9 @@ class TextFiledWidget extends StatelessWidget {
    String hint;
    TextInputType type;
    IconData icon;
-   TextFiledWidget({required this.type, required this.controller,required this.hint,required this.icon});
+   List<TextInputFormatter>? inputFormatters;
+   
+   TextFiledWidget({super.key, required this.type, required this.controller,required this.hint,required this.icon, this.inputFormatters});
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +25,7 @@ class TextFiledWidget extends StatelessWidget {
         border: Border.all(color: Colors.purple,width: 2),
       ),
       child: TextField(
+        inputFormatters: inputFormatters,
         keyboardType: type,
         controller: controller,
         style: TextStyle(fontSize: 14.sp,fontWeight: FontWeight.w500,),

@@ -5,12 +5,27 @@ import 'package:finacial_manager/src/features/feature_new_transaction/view/add_t
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 class TransactionItemWidget extends StatelessWidget {
   final Money money;
   final String id;
   TransactionItemWidget({required this.money, required this.id});
+
+  String formatPrice(String price) {
+    if (price.isEmpty) return '0';
+    // Remove any existing non-digits just in case (except maybe decimal point if needed, but assuming integer based on "every 3 zeros")
+    String cleanPrice = price.replaceAll(RegExp(r'[^\d]'), '');
+    if (cleanPrice.isEmpty) return '0';
+    
+    // Reverse, add commas, reverse back
+    // Or use RegExp
+    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    Function mathFunc = (Match match) => '${match[1]},';
+    return cleanPrice.replaceAllMapped(reg, mathFunc as String Function(Match));
+  }
+
   @override
   Widget build(BuildContext context) {
     return GetBuilder<HomeController>(builder: (controller) {
@@ -18,79 +33,92 @@ class TransactionItemWidget extends StatelessWidget {
         onTap: () {
           controller.isEditing = true;
           controller.index = id;
-          Get.find<HomeController>().titleController.clear();
-          Get.find<HomeController>().priceController.clear();
+          Get.find<HomeController>().titleController.text = money.title??'';
+          Get.find<HomeController>().priceController.text = money.price??'';
+          Get.find<HomeController>().selectedValue = money.isReceived ?? false ? 1 : 0;
+          Get.find<HomeController>().date = money.date??'';
           Get.to(AddTransaction(), arguments: money);
         },
         onLongPress: () {
           customDialog(
-              context: context, title: money.title ?? '', onYesPressed: () {
-            // controller.hiveBox!.deleteAt(index);
+              context: context, title: money.title ?? '', onYesPressed: () async {
+            
+            await money.delete();
 
             Get.back();
             controller.update();
           });
         },
         child: Container(
-          alignment: AlignmentDirectional.centerStart,
-          padding: EdgeInsets.symmetric(horizontal: 5.w),
-          width: 358.w,
-          height: 70.h,
+          margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.08),
+                offset: Offset(0, 4),
+                blurRadius: 12,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          padding: EdgeInsets.all(12.w),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                margin: EdgeInsetsDirectional.only(end: 5.w),
                 width: 50.w,
                 height: 50.w,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  color: money.isReceived ?? false
-                      ? Colors.green
-                      : Colors.red,
+                  shape: BoxShape.circle,
+                  color: (money.isReceived ?? false ? Colors.green : Colors.red).withOpacity(0.1),
                 ),
                 child: Icon(
                   money.isReceived ?? false
                       ? IconsaxPlusBold.add_square
                       : IconsaxPlusBold.minus_square,
-                  color: Colors.white,
-                  size: 25.sp,
+                  color: money.isReceived ?? false ? Colors.green : Colors.red,
+                  size: 24.sp,
                 ),
               ),
-              SizedBox(
-                width: 150.w,
-                child: Text(
-                  textAlign: TextAlign.center,
-                  money.title??'',
-                  maxLines: 2,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13.sp,
-                    color: Colors.black87,
-                  ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      money.title ?? 'Unknown',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      money.date ?? '',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12.sp,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Spacer(),
               Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    money.price??'0',
+                    (money.isReceived ?? false ? '+' : '-') + formatPrice(money.price ?? '0'),
                     style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 19.sp,
-                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
+                      color: money.isReceived ?? false ? Colors.green : Colors.red,
                       fontFamily: 'Roboto',
-                    ),
-                  ),
-                  Text(
-                    money.date ?? '',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15.sp,
-                      color: Colors.black87,
                     ),
                   ),
                 ],

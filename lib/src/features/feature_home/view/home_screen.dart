@@ -19,6 +19,7 @@ class HomeScreen extends StatelessWidget {
       },
       builder: (controller) {
         return Container(
+          color: Colors.white54,
           width: 360.w,
           height: 690.h,
           child: SafeArea(
@@ -26,10 +27,14 @@ class HomeScreen extends StatelessWidget {
               slivers: [
                 SliverToBoxAdapter(child: HeaderWidget()),
                 SliverToBoxAdapter(
-                  child: FutureBuilder(future: Future(() => Hive.openLazyBox('moneyBox')), builder: (context, snapshot) {
+                  child: FutureBuilder(future: Hive.openBox<Money>('moneyBox'), builder: (context, snapshot) {
                     if(snapshot.hasData && snapshot.connectionState == ConnectionState.done){
                       return controller.showData();
-                    }else{
+                    } else if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                       return Center(child: Text("Error: ${snapshot.error}"));
+                    } else {
                       return EmptyWidget();
                     }
                   },),
@@ -42,4 +47,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-
