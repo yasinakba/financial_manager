@@ -1,14 +1,15 @@
+import 'package:finacial_manager/src/core/utils/calculate.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class InfoWidgetEN extends StatelessWidget {
-   String receivedDay = "0";
-   String receivedMonth= "0";
-   String receivedYear = "0";
-   String paidDay = "0";
-   String paidMonth= "0";
-   String paidYear = "0";
+   String receivedDay = Calculate.receiveToday().toString();
+   String receivedMonth= Calculate.receiveMonth().toString();
+   String receivedYear = Calculate.receiveYear().toString();
+   String paidDay = Calculate.paidToday().toString();
+   String paidMonth= Calculate.paidMonth().toString();
+   String paidYear = Calculate.paidYear().toString();
   InfoWidgetEN({required this.receivedDay, required this.receivedMonth, required this.receivedYear,required this.paidDay,required this.paidMonth,required this.paidYear,});
 
   @override

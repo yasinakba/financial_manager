@@ -1,4 +1,5 @@
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:finacial_manager/src/features/feature_home/controller/home_screen_controller.dart';
 import 'package:finacial_manager/src/features/feature_home/view/home_screen.dart';
 import 'package:finacial_manager/src/features/feature_info/view/info_screen.dart';
 import 'package:finacial_manager/src/features/feature_new_transaction/view/add_transaction.dart';
@@ -20,6 +21,9 @@ class _NaveScreenState extends State<NaveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         floatingActionButton: FloatingActionButton(backgroundColor: Colors.purple,onPressed: () {
+          Get.lazyPut(() => HomeController(),);
+          Get.find<HomeController>().titleController.clear();
+          Get.find<HomeController>().priceController.clear();
           Get.to(AddTransaction(),transition: Transition.downToUp,curve: Curves.fastLinearToSlowEaseIn,duration: Duration(milliseconds: 300));
           Get.to(AddTransaction(),transition: Transition.downToUp,curve: Curves.fastLinearToSlowEaseIn,duration: Duration(milliseconds: 300));
         },child: Icon(IconsaxPlusBold.add,color: Colors.white,),),
